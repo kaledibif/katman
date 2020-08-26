@@ -1,0 +1,49 @@
+version: '3'
+
+networks:
+  katman:
+    driver: bridge
+
+services:
+  nginx:
+    build:
+      context: ./docker/nginx
+    image: katman-nginx
+    container_name: katman-nginx
+    networks:
+      - katman
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/logs/nginx:/var/log/nginx
+
+  php:
+    build:
+      context: ./docker/php-fpm
+    image: katman-php
+    container_name: katman-php
+    networks:
+      - katman
+    volumes:
+      - ./src:/var/www/html
+
+  mysql:
+    build:
+      context: docker/mysql
+    image: katman-mysql
+    container_name: katman-mysql
+    environment:
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - katman
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql/custom.cnf:/etc/mysql/conf.d/local.cnf
+      - ./docker/logs/mysql:/var/log/mysql
+      - ./docker/mysql/data:/var/lib/mysql
